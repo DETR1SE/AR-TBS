@@ -2,8 +2,10 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Runtime.InteropServices.ComTypes;
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using Random = UnityEngine.Random;
 using Vector3 = UnityEngine.Vector3;
 
 public class BoardManager : MonoBehaviour
@@ -22,6 +24,8 @@ public class BoardManager : MonoBehaviour
 
     public List<GameObject> units;
     private List<GameObject> activeUnits;
+
+    private UnityEngine.Quaternion orietnation = UnityEngine.Quaternion.Euler(0, 0, 0);
 
     public bool isPlayerTurn = true;
 
@@ -54,7 +58,7 @@ public class BoardManager : MonoBehaviour
 
     private void SelectUnit(int x, int y)
     {
-        if (Unit[x, y] == null)
+        if (Unit[x, y] == null)            
             return;
 
         if (Unit[x, y].isUSSR != isPlayerTurn)
@@ -73,10 +77,11 @@ public class BoardManager : MonoBehaviour
             
             if(c != null && c.isUSSR != isPlayerTurn)
             {
-                if(c.GetType() == typeof(Tank))
+                if (c.GetType() == typeof(Tank))
                 {
                     return;
                 }
+                Points.scoreAmount += 25;
                 activeUnits.Remove(c.gameObject);
                 Destroy (c.gameObject);
             }
@@ -86,6 +91,7 @@ public class BoardManager : MonoBehaviour
             selectedUnit.SetPosition(x, y);
             Unit[x, y] = selectedUnit;
             isPlayerTurn = !isPlayerTurn;
+            Points.scoreAmount += 10;
         }
 
         BoardHighlights.Instance.HideHighlights();
@@ -98,7 +104,7 @@ public class BoardManager : MonoBehaviour
             return;
 
         RaycastHit hit;
-        if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),out hit, 50.0f, LayerMask.GetMask("Plane")))
+        if(Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition),out hit, 100.0f, LayerMask.GetMask("Plane")))
         {
             selectionX = (int)hit.point.x;
             selectionY = (int)hit.point.z;
@@ -112,7 +118,7 @@ public class BoardManager : MonoBehaviour
 
     private void SpawnUnits(int index, int x, int y)
     {
-        GameObject go = Instantiate(units[index], GetTileCenter(x,y), UnityEngine.Quaternion.identity) as GameObject;
+        GameObject go = Instantiate(units[index], GetTileCenter(x,y), orietnation) as GameObject;
         go.transform.SetParent(transform);
         Unit [x, y] = go.GetComponent<Units>();
         Unit [x, y].SetPosition(x, y);
@@ -125,16 +131,106 @@ public class BoardManager : MonoBehaviour
         Unit = new Units[20, 20];
 
         //Spawn player#1 team
+        SpawnUnits(4, 0, 0);
+        SpawnUnits(1, 1, 1);
         SpawnUnits(0, 0, 1);
-        SpawnUnits(0, 1, 1);
         SpawnUnits(0, 1, 0);
-        SpawnUnits(1, 0, 0);
 
         //Spawn player#2 team
+        SpawnUnits(5, 19, 19);
+        SpawnUnits(3, 18, 18);
         SpawnUnits(2, 18, 19);
-        SpawnUnits(2, 18, 18);
         SpawnUnits(2, 19, 18);
-        SpawnUnits(3, 19, 19);
+
+        //Environment
+
+
+        int spawnX, spawnY;
+
+        for (int i = 0; i<20; i++) {
+            spawnX = Random.Range(0, 19);
+            spawnY = Random.Range(0, 19);
+            if (spawnX != 3 && spawnY != 3)
+            {
+                SpawnUnits(Random.Range(6, 12), spawnX, spawnY);
+                Debug.Log("Env spawn");
+            }
+            else {
+                Debug.Log("Env nespawn");
+            }
+        };
+        
+        {
+            // 1 Zone
+
+/*            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(0, 9));
+            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(0, 9));
+            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(0, 9));
+            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(0, 9));*/
+
+            // 2 Zone
+
+/*            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(0, 9));
+            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(0, 9));
+            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(0, 9));
+            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(0, 9));*/
+
+            // 3 Zone
+
+/*            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(9, 19));
+            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(9, 19));
+            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(9, 19));
+            SpawnUnits(Random.Range(6, 12), Random.Range(0, 9), Random.Range(9, 19));*/
+
+            // 4 Zone
+
+/*            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(9, 19));
+            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(9, 19));
+            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(9, 19));
+            SpawnUnits(Random.Range(6, 12), Random.Range(9, 19), Random.Range(9, 19));*/
+        }
+
+
+
+
+        /*        SpawnUnits(12, 10, 10);
+                SpawnUnits(12, 10, 10);
+                SpawnUnits(12, 10, 10);
+                SpawnUnits(12, 10, 10);
+                SpawnUnits(12, 10, 10);*/
+    }
+
+    public void SpawnNewSoldiers()
+    {
+        activeUnits = new List<GameObject>();
+        Unit = new Units[20, 20];
+
+        SpawnUnits(0, 0, 1);
+        SpawnUnits(0, 1, 0);
+    }
+
+    private void SpawnNewTank()
+    {
+        activeUnits = new List<GameObject>();
+        Unit = new Units[20, 20];
+
+        SpawnUnits(1, 1, 1);
+    }
+
+    private void BuySoldiers()
+    {
+        if(Points.scoreAmount>=50)
+        {
+            SpawnNewSoldiers();
+        }
+    }
+
+    private void BuyTank()
+    {
+        if (Points.scoreAmount >= 100)
+        {
+            SpawnNewTank();
+        }
     }
 
     private Vector3 GetTileCenter(int x, int y)
